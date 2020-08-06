@@ -16,6 +16,7 @@
 
     float4 _UV2View;
     float4 _TexelSize;
+    float _AOStrengh;
     float _MaxRadiusPixel;
     float _RadiusPixel;
     float _Radius;

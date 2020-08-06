@@ -32,6 +32,12 @@ public class HBAO : MonoBehaviour
     [SerializeField]
     STEP mStep = STEP.STEPS_4;
     /// <summary>
+    /// AO强度
+    /// </summary>
+    [SerializeField]
+    [Range(0, 3f)]
+    float mAOStrength = 0.5f;
+    /// <summary>
     /// 最大检测像素半径
     /// </summary>
     [SerializeField]
@@ -80,6 +86,7 @@ public class HBAO : MonoBehaviour
         public static int HbaoBlurTex;
         public static int UV2View;
         public static int TexelSize;
+        public static int AOStrength;
         public static int MaxRadiusPixel;
         public static int RadiusPixel;
         public static int Radius;
@@ -93,6 +100,7 @@ public class HBAO : MonoBehaviour
             HbaoBlurTex = Shader.PropertyToID("_HbaoBlurTex");
             UV2View = Shader.PropertyToID("_UV2View");
             TexelSize = Shader.PropertyToID("_TexelSize");
+            AOStrength = Shader.PropertyToID("_AOStrengh");
             MaxRadiusPixel = Shader.PropertyToID("_MaxRadiusPixel");
             RadiusPixel = Shader.PropertyToID("_RadiusPixel");
             Radius = Shader.PropertyToID("_Radius");
@@ -184,6 +192,7 @@ public class HBAO : MonoBehaviour
         mMaterial.SetFloat(ShaderProperties.AngleBias, mAngleBias);
         mMaterial.SetFloat(ShaderProperties.BlurRadiusPixel, mBlurRadiusPixel);
         mMaterial.SetInt(ShaderProperties.BlurSamples, mBlurSamples);
+        mMaterial.SetFloat(ShaderProperties.AOStrength, mAOStrength);
     }
 
     void UpdateShaderKeywords()

@@ -1,5 +1,12 @@
 ﻿#include "UnityCG.cginc"
 
+#define FLT_EPSILON     1.192092896e-07 // Smallest positive number, such that 1.0 + FLT_EPSILON != 1.0
+
+float PositivePow(float base, float power)
+{
+    return pow(max(abs(base), float(FLT_EPSILON)), power);
+}
+
 inline float FetchDepth(float2 uv)
 {
     return SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, uv);
@@ -68,6 +75,7 @@ float4 hbao(v2f input) : SV_Target
         }
     }
     ao /= STEPS * DIRECTION;
+    ao = PositivePow(ao * _AOStrengh, 0.6);
     float col = saturate(1 - ao);
     return float4(col, col, col, col);
 }

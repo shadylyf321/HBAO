@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 170076734}
-  m_IndirectSpecularColor: {r: 0.4492162, g: 0.4992882, b: 0.5757118, a: 1}
+  m_IndirectSpecularColor: {r: 0.18227184, g: 0.22797799, b: 0.30734232, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -140,7 +140,7 @@ Light:
   serializedVersion: 8
   m_Type: 1
   m_Color: {r: 1, g: 0.95686275, b: 0.8392157, a: 1}
-  m_Intensity: 0.7
+  m_Intensity: 0.888
   m_Range: 10
   m_SpotAngle: 30
   m_CookieSize: 10
@@ -246,7 +246,7 @@ Camera:
   m_HDR: 0
   m_AllowMSAA: 1
   m_AllowDynamicResolution: 0
-  m_ForceIntoRT: 0
+  m_ForceIntoRT: 1
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
@@ -278,11 +278,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mDir: 0
   mStep: 0
-  mMaxRadiusPixel: 153
-  mRadius: 0.872
-  mAngleBias: 0.141
+  mAOStrength: 0.85
+  mMaxRadiusPixel: 218
+  mRadius: 1.243
+  mAngleBias: 0.173
   mEnableBlur: 1
-  mBlurRadiusPixel: 11
+  mBlurRadiusPixel: 10
   mBlurSamples: 4
   mGuassBlur: 0
   mHbaoShader: {fileID: 4800000, guid: 63a550c2483ce2b489a272413ce2fbd1, type: 3}
