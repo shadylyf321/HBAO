@@ -4,12 +4,14 @@
     {
         _MainTex ("Texture", 2D) = "" {}
         _HbaoTex("Texture", 2D) = "" {}
+        _HbaoTexBlur("Texture", 2D) = "" {}
     }
 
     CGINCLUDE
     UNITY_DECLARE_SCREENSPACE_TEXTURE(_CameraDepthNormalsTexture)
     sampler2D _MainTex;
     sampler2D _HbaoTex;
+    sampler2D _HbaoBlurTex;
     UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);//depth should use high precise
 
     float4 _UV2View;
@@ -18,6 +20,8 @@
     float _RadiusPixel;
     float _Radius;
     float _AngleBias;
+    float _BlurRadiusPixel;
+    int _BlurSamples;
 
     struct appdata
     {
@@ -61,7 +65,7 @@
 
             #if DIRECTION_4
                 #define DIRECTION 4
-            #elif DIRECTION_6
+            #elif DIRECTION_6   
                 #define DIRECTION 6
             #elif DIRECTION_8
                 #define DIRECTION 8
@@ -92,16 +96,33 @@
         {
             Name "Composite"
             CGPROGRAM
+            #pragma multi_compile __ ENABLEBLUR
             #pragma vertex vert
             #pragma fragment fragComposite
 
             half4 fragComposite (v2f i) : SV_Target
             {
-                half4 ao = tex2D(_HbaoTex, i.uv);
+                #if ENABLEBLUR
+                    half4 ao = tex2D(_HbaoBlurTex, i.uv);
+                #else
+                    half4 ao = tex2D(_HbaoTex, i.uv);
+                #endif
                 half4 col = tex2D(_MainTex, i.uv);
                 col.rgb *= ao.a;
                 return col;
             }
+            ENDCG
+        }
+         //2
+        Pass
+        {
+            Name "Blur"
+            CGPROGRAM
+            #pragma multi_compile __ GUASSBLUR
+            #pragma vertex vert
+            #pragma fragment fragBlur
+
+            #include "blur.cginc"
             ENDCG
         }
 

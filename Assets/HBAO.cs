@@ -2,10 +2,35 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
-
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+[ExecuteInEditMode]
 [RequireComponent(typeof(Camera))]
 public class HBAO : MonoBehaviour
 {
+    /// <summary>
+    /// HBAO检测方向
+    /// </summary>
+    public enum DIRECTION
+    {
+        DIRECTION_4,
+        DIRECTION_6,
+        DIRECTION_8,
+    }
+    /// <summary>
+    /// HBAO特定方向统计次数
+    /// </summary>
+    public enum STEP
+    {
+        STEPS_4,
+        STEPS_6,
+        STEPS_8,
+    }
+    [SerializeField]
+    DIRECTION mDir = DIRECTION.DIRECTION_4;
+    [SerializeField]
+    STEP mStep = STEP.STEPS_4;
     /// <summary>
     /// 最大检测像素半径
     /// </summary>
@@ -24,36 +49,71 @@ public class HBAO : MonoBehaviour
     [SerializeField]
     [Range(0, 0.9f)]
     float mAngleBias = 0.1f;
+    /// <summary>
+    /// 模糊采样次数
+    /// </summary>
+    [SerializeField]
+    bool mEnableBlur = true;
+    /// <summary>
+    /// 模糊半径
+    /// </summary>
+    [SerializeField]
+    [Range(5, 20)]
+    int mBlurRadiusPixel = 10;
+    /// <summary>
+    /// 模糊采样次数
+    /// </summary>
+    [SerializeField]
+    [Range(2, 10)]
+    int mBlurSamples = 4;
+    [SerializeField]
+    /// <summary>
+    // 是否开启高斯模糊
+    /// </summary>
+    bool mGuassBlur = false;
     [SerializeField]
     Shader mHbaoShader;
     private static class ShaderProperties
     {
         public static int MainTex;
         public static int HbaoTex;
+        public static int HbaoBlurTex;
         public static int UV2View;
         public static int TexelSize;
         public static int MaxRadiusPixel;
         public static int RadiusPixel;
         public static int Radius;
         public static int AngleBias;
+        public static int BlurRadiusPixel;
+        public static int BlurSamples;
         static ShaderProperties()
         {
             MainTex = Shader.PropertyToID("_MainTex");
             HbaoTex = Shader.PropertyToID("_HbaoTex");
+            HbaoBlurTex = Shader.PropertyToID("_HbaoBlurTex");
             UV2View = Shader.PropertyToID("_UV2View");
             TexelSize = Shader.PropertyToID("_TexelSize");
             MaxRadiusPixel = Shader.PropertyToID("_MaxRadiusPixel");
             RadiusPixel = Shader.PropertyToID("_RadiusPixel");
             Radius = Shader.PropertyToID("_Radius");
             AngleBias = Shader.PropertyToID("_AngleBias");
+            BlurRadiusPixel = Shader.PropertyToID("_BlurRadiusPixel");
+            BlurSamples = Shader.PropertyToID("_BlurSamples");
         }
     }
-    private string[] mShaderKeywords = new string[2] {"DIRECTION_4" ,"STEPS_4"};
+    private string[] mShaderKeywords = new string[4] 
+        {
+            "DIRECTION_4" ,
+            "STEPS_4",
+            "ENABLEBLUR",
+            "GUASSBLUR",
+        };
 
     private static class Pass
     {
         public const int AO = 0;
         public const int Composite = 1;
+        public const int Blur = 2;
     }
 
     //使用一个大三角形绘制renderTarget
@@ -122,10 +182,17 @@ public class HBAO : MonoBehaviour
         mMaterial.SetFloat(ShaderProperties.Radius, mRadius);
         mMaterial.SetFloat(ShaderProperties.MaxRadiusPixel, mMaxRadiusPixel);
         mMaterial.SetFloat(ShaderProperties.AngleBias, mAngleBias);
+        mMaterial.SetFloat(ShaderProperties.BlurRadiusPixel, mBlurRadiusPixel);
+        mMaterial.SetInt(ShaderProperties.BlurSamples, mBlurSamples);
     }
 
     void UpdateShaderKeywords()
     {
+        mShaderKeywords[0] = mDir.ToString();
+        mShaderKeywords[1] = mStep.ToString();
+        mShaderKeywords[2] = mEnableBlur ? "ENABLEBLUR" : "__";
+        mShaderKeywords[3] = mGuassBlur ? "GUASSBLUR" : "__";
+
         mMaterial.shaderKeywords = mShaderKeywords;
     }
 
@@ -147,8 +214,11 @@ public class HBAO : MonoBehaviour
     void BuildCommandBuffer(CommandBuffer cmd)
     {
         AOEffect(cmd);
+        Blur(cmd);
         Composite(cmd);
         cmd.ReleaseTemporaryRT(ShaderProperties.HbaoTex);
+        if (mEnableBlur)
+            cmd.ReleaseTemporaryRT(ShaderProperties.HbaoBlurTex);
         mCamera.AddCommandBuffer(CameraEvent.BeforeImageEffectsOpaque, cmd);
     }
 
@@ -158,7 +228,16 @@ public class HBAO : MonoBehaviour
         BlitFullscreenTriangle(cmd, BuiltinRenderTextureType.CameraTarget, ShaderProperties.HbaoTex, mMaterial, Pass.AO);
     }
 
-      void Composite(CommandBuffer cmd)
+    void Blur(CommandBuffer cmd)
+    {
+        if (mEnableBlur)
+        {
+            GetScreenSpaceTemporaryRT(cmd, ShaderProperties.HbaoBlurTex);
+            BlitFullscreenTriangle(cmd, ShaderProperties.HbaoTex, ShaderProperties.HbaoBlurTex, mMaterial, Pass.Blur);
+        }
+    }
+
+    void Composite(CommandBuffer cmd)
     {
         BlitFullscreenTriangle(cmd, BuiltinRenderTextureType.CameraTarget, BuiltinRenderTextureType.CameraTarget, mMaterial, Pass.Composite);
     }

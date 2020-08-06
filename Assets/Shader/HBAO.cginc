@@ -41,16 +41,13 @@ float4 hbao(v2f input) : SV_Target
     float ao = 0;
     float3 viewPos = FetchViewPos(input.uv);
     float3 normal = FetchViewNormal(input.uv);
-    #define STEPS 4
-    #define DIRECTION 4
-
     float stepSize = min((_RadiusPixel / viewPos.z), _MaxRadiusPixel) / (STEPS + 1.0);
     //stepSize至少大于一个像素
     if(stepSize < 1)
         return float4(1, 1, 1, 1);
     //stepSize > 1
     float delta = 2.0 * UNITY_PI / DIRECTION;
-    float rnd = random(input.uv);
+    float rnd = random(input.uv * 10);
     float2 xy = float2(1, 0);
 
     UNITY_UNROLL
