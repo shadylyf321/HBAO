@@ -8,13 +8,11 @@ float4 fragBlur(v2f i) : SV_TARGET
     #else
     float sum = _BlurSamples;
     #endif
-    // float offset = (1.0 + 1) / _BlurSamples * _BlurRadiusPixel;
-    // float2 uv = i.uv + float2(0, offset) * _TexelSize.xy;
-
-    // return tex2D(_HbaoTex, uv);
+    float depth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, i.uv);
     for (int index = 0; index < _BlurSamples; ++index)
     {
         float offset = (index + 1.0) / _BlurSamples * _BlurRadiusPixel;
+        offset = offset * 2 * depth;//½â¾öÔ¶¾àÀë blur offsetµ¼ÖÂaoÆ«ÒÆ
         float2 uv = i.uv + float2(0, offset) * _TexelSize.xy;
         #if GUASSBLUR
             float sSquard = _BlurRadiusPixel * _BlurRadiusPixel;
