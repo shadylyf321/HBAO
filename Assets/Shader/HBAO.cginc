@@ -30,12 +30,14 @@ inline float FallOff(float dist)
 }
 
 //https://www.derschmale.com/2013/12/20/an-alternative-implementation-for-hbao-2/
-inline float SimpleAO(float3 pos, float3 stepPos, float3 normal)
+inline float SimpleAO(float3 pos, float3 stepPos, float3 normal, inout float top)
 {
     float3 h = stepPos - pos;
     float dist = sqrt(dot(h, h));
     float sinBlock = dot(normal, h) / dist;
-    return saturate(sinBlock - _AngleBias) * saturate(FallOff(dist));
+    float diff = max(sinBlock - top, 0);
+    top = max(sinBlock, top);
+    return diff * saturate(FallOff(dist));
 }
 
 //value-noise https://thebookofshaders.com/11/
@@ -65,12 +67,13 @@ float4 hbao(v2f input) : SV_Target
         sincos(angle, sin, cos);
         float2 dir = float2(cos, sin);
         float rayPixel = 1;
+        float top = _AngleBias;
         UNITY_UNROLL
         for(int j = 0; j < STEPS; ++j)
         {
             float2 stepUV = round(rayPixel * dir) * _TexelSize.xy + input.uv;
             float3 stepViewPos = FetchViewPos(stepUV);
-            ao += SimpleAO(viewPos, stepViewPos, normal);
+            ao += SimpleAO(viewPos, stepViewPos, normal, top);
             rayPixel += stepSize;
         }
     }

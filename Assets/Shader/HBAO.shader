@@ -23,6 +23,7 @@
     float _AngleBias;
     float _BlurRadiusPixel;
     int _BlurSamples;
+    float2 _BlurDir;
 
     struct appdata
     {
@@ -104,7 +105,7 @@
             half4 fragComposite (v2f i) : SV_Target
             {
                 #if ENABLEBLUR
-                    half4 ao = tex2D(_HbaoBlurTex, i.uv);
+                    half4 ao = tex2D(_HbaoTex, i.uv);
                 #else
                     half4 ao = tex2D(_HbaoTex, i.uv);
                 #endif

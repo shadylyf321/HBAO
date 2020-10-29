@@ -93,6 +93,7 @@ public class HBAO : MonoBehaviour
         public static int AngleBias;
         public static int BlurRadiusPixel;
         public static int BlurSamples;
+        public static int BlurDir;
         static ShaderProperties()
         {
             MainTex = Shader.PropertyToID("_MainTex");
@@ -107,6 +108,7 @@ public class HBAO : MonoBehaviour
             AngleBias = Shader.PropertyToID("_AngleBias");
             BlurRadiusPixel = Shader.PropertyToID("_BlurRadiusPixel");
             BlurSamples = Shader.PropertyToID("_BlurSamples");
+            BlurDir = Shader.PropertyToID("_BlurDir");
         }
     }
     private string[] mShaderKeywords = new string[4] 
@@ -242,7 +244,10 @@ public class HBAO : MonoBehaviour
         if (mEnableBlur)
         {
             GetScreenSpaceTemporaryRT(cmd, ShaderProperties.HbaoBlurTex);
+            mMaterial.SetVector(ShaderProperties.BlurDir, new Vector2(1, 0));
             BlitFullscreenTriangle(cmd, ShaderProperties.HbaoTex, ShaderProperties.HbaoBlurTex, mMaterial, Pass.Blur);
+            mMaterial.SetVector(ShaderProperties.BlurDir, new Vector2(0, 1));
+            BlitFullscreenTriangle(cmd, ShaderProperties.HbaoBlurTex, ShaderProperties.HbaoTex, mMaterial, Pass.Blur);
         }
     }
 
